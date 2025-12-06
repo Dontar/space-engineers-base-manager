@@ -15,10 +15,10 @@ namespace IngameScript
         struct Meta
         {
             public MyDefinitionId BlueprintId;
-            public MyItemType ItemType;
+            public MyItemType TypeId;
             public Meta(string blueprintId, string itemType) {
                 BlueprintId = MyDefinitionId.Parse($"MyObjectBuilder_BlueprintDefinition/{blueprintId}");
-                ItemType = MyItemType.Parse($"MyObjectBuilder_{itemType}");
+                TypeId = MyItemType.Parse($"MyObjectBuilder_{itemType}");
             }
         }
         Dictionary<string, Meta> Items = new Dictionary<string, Meta> {
@@ -140,7 +140,6 @@ namespace IngameScript
             {"Grain Seeds"                            , new Meta("Position0020_Seeds_Grain"                        , "SeedItem/Grain")},
             {"Vegetable Seeds"                        , new Meta("Position0030_Seeds_Vegetables"                   , "SeedItem/Vegetables")},
             {"Mushroom Spores"                        , new Meta("Position0040_Spores_Mushrooms"                   , "SeedItem/Mushrooms")},
-
         };
     }
 }

@@ -40,7 +40,7 @@ namespace IngameScript
             var foodItem = new List<MyItemType>();
             FoodProcessors.FirstOrDefault()?.OutputInventory.GetAcceptedItems(foodItem);
 
-            var result = Enumerable.Concat(assemblerItems, foodItem).Join(Items, o => o, i => i.Value.ItemType, (_, r) => r).ToDictionary(k => k.Key, v => v.Value.ItemType.TypeId.Substring(16));
+            var result = Enumerable.Concat(assemblerItems, foodItem).Join(Items, o => o, i => i.Value.TypeId, (_, r) => r).ToDictionary(k => k.Key, v => v.Value.TypeId.TypeId.Substring(16));
 
             foreach (var item in result)
                 if (!ItemsQuota.ContainsKey(item.Value, item.Key))
@@ -65,7 +65,7 @@ namespace IngameScript
         }
 
         int GetInventoryItemsCount(Meta item) {
-            var inventoryItemAmount = Inventories.Sum(inv => inv.GetItemAmount(item.ItemType).ToIntSafe());
+            var inventoryItemAmount = Inventories.Sum(inv => inv.GetItemAmount(item.TypeId).ToIntSafe());
 
             Func<MyProductionItem, int> selector = qItem => qItem.Amount.ToIntSafe();
             Func<MyProductionItem, bool> predicate = qItem => qItem.BlueprintId == item.BlueprintId;
