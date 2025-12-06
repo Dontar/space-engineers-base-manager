@@ -8,6 +8,7 @@ namespace IngameScript
             Util.Init(this);
             InitAirLocks();
             InitPower();
+            InitQuota();
             Task.RunTask(Util.StatusMonitorTask(this));
             Task.RunTask(Util.DisplayLogo("Base Manager", Me.GetSurface(0))).Every(1.5f);
         }
