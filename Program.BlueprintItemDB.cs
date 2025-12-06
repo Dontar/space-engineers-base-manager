@@ -32,8 +32,6 @@ namespace IngameScript
             {"Gold Ingot"                             , new Meta("GoldOreToIngot"                                  , "Ingot/Gold")},
             {"Platinum Ingot"                         , new Meta("PlatinumOreToIngot"                              , "Ingot/Platinum")},
             {"Uranium Ingot"                          , new Meta("UraniumOreToIngot"                               , "Ingot/Uranium")},
-            {"Iron Ingot"                             , new Meta("ScrapIngotToIronIngot"                           , "Ingot/Iron")},
-            {"Iron Ingot"                             , new Meta("ScrapToIronIngot"                                , "Ingot/Iron")},
 
             {"Construction Component"                 , new Meta("ConstructionComponent"                           , $"{C}/Construction")},
             {"Girder"                                 , new Meta("GirderComponent"                                 , $"{C}/Girder")},
@@ -108,8 +106,7 @@ namespace IngameScript
             {"Zone Chip"                              , new Meta("ZoneChip"                                        , $"{C}/ZoneChip")},
             {"Engineer Plushie"                       , new Meta("EngineerPlushie"                                 , $"{C}/EngineerPlushie")},
             {"Sabiroid Plushie"                       , new Meta("SabiroidPlushie"                                 , $"{C}/SabiroidPlushie")},
-            {"Prototech Panel"                        , new Meta("PrototechScrap"                                  , "Ingot/PrototechScrap")},
-            {"Prototech Panel"                        , new Meta("PrototechFrame"                                  , $"{C}/PrototechFrame")},
+            {"Prototech Frame"                        , new Meta("PrototechFrame"                                  , $"{C}/PrototechFrame")},
             {"Prototech Panel"                        , new Meta("PrototechPanel"                                  , $"{C}/PrototechPanel")},
             {"Prototech Capacitor"                    , new Meta("PrototechCapacitor"                              , $"{C}/PrototechCapacitor")},
             {"Prototech Propulsion Unit"              , new Meta("PrototechPropulsionUnit"                         , $"{C}/PrototechPropulsionUnit")},
