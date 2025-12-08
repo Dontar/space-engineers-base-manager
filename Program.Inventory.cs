@@ -12,7 +12,7 @@ namespace IngameScript
     {
         List<IMyTerminalBlock> InventoryBlocks => Memo.Of("InventoryBlocks", TimeSpan.FromSeconds(5), () => Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory));
         void InitInventories() {
-            Task.RunTask(InventoryTask()).Every(1);
+            Task.RunTask(InventoryTask()).Every(2);
         }
 
         IEnumerable InventoryTask() {
