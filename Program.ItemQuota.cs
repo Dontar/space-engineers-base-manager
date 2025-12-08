@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Sandbox.ModAPI.Ingame;
 using VRage;
+using VRage.Extensions;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
 
@@ -10,8 +12,14 @@ namespace IngameScript
 {
     public partial class Program : MyGridProgram
     {
-        List<IMyAssembler> Assemblers;
-        List<IMyProductionBlock> FoodProcessors;
+        List<IMyProductionBlock> Producers => Memo.Of("Producers", TimeSpan.FromSeconds(10), () => Util.GetBlocks<IMyProductionBlock>(b => {
+            if (!b.IsFunctional)
+                return false;
+            return
+                b is IMyAssembler && b.BlockDefinition.TypeIdString != "MyObjectBuilder_SurvivalKit"
+                || b.BlockDefinition.SubtypeId == "FoodProcessor";
+        }));
+
         List<IMyInventory> Inventories;
         MyIni ItemsQuota => Memo.Of("ItemsConfig", Me.CustomData, () => {
             var ini = new MyIni();
@@ -20,9 +28,7 @@ namespace IngameScript
         });
 
         void InitQuota() {
-            var producers = Util.GetBlocks<IMyProductionBlock>();
-            Assemblers = producers.Where(p => p is IMyAssembler && p.BlockDefinition.TypeIdString != "MyObjectBuilder_SurvivalKit").Cast<IMyAssembler>().ToList();
-            FoodProcessors = producers.Where(p => p.BlockDefinition.SubtypeId == "FoodProcessor").ToList();
+
             Inventories = Util.GetBlocks<IMyTerminalBlock>(b => b.HasInventory).SelectMany(b => {
                 var inv = new List<IMyInventory>();
                 for (var i = 0; i < b.InventoryCount; i++) {
@@ -31,45 +37,49 @@ namespace IngameScript
                 return inv;
             }).ToList();
 
-            var assemblerItems = Assemblers.SelectMany(a => {
+            var result = Producers.SelectMany(a => {
                 var items = new List<MyItemType>();
-                a.InputInventory.GetAcceptedItems(items);
+                a.OutputInventory.GetAcceptedItems(items);
                 return items;
-            }).Distinct().ToList();
+            }).Join(Items, o => o, i => i.Value.TypeId, (_, r) => r);
 
-            var foodItem = new List<MyItemType>();
-            FoodProcessors.FirstOrDefault()?.OutputInventory.GetAcceptedItems(foodItem);
-
-            var result = Enumerable.Concat(assemblerItems, foodItem).Join(Items, o => o, i => i.Value.TypeId, (_, r) => r).ToDictionary(k => k.Key, v => v.Value.TypeId.TypeId.Substring(16));
-
-            foreach (var item in result)
-                if (!ItemsQuota.ContainsKey(item.Value, item.Key))
-                    ItemsQuota.Set(item.Value, item.Key, "0");
-
+            foreach (var item in result) {
+                var subtypeId = item.Value.TypeId.SubtypeId;
+                if (!ItemsQuota.ContainsKey(subtypeId, item.Key))
+                    ItemsQuota.Set(subtypeId, item.Key, "0");
+            }
             Me.CustomData = ItemsQuota.ToString();
 
+            var keys = new List<MyIniKey>();
+            var assemblers = Producers.Where(p => {
+                if (!p.Enabled)
+                    return false;
+                if (p is IMyAssembler)
+                    return !((IMyAssembler)p).CooperativeMode;
+                return true;
+            });
             Task.SetInterval(() => {
-                var keys = new List<MyIniKey>();
                 ItemsQuota.GetKeys(keys);
 
                 foreach (var item in keys) {
-                    var itemMeta = Items[item.Name];
-                    var itemAmount = GetInventoryItemsCount(itemMeta);
                     var quota = ItemsQuota.Get(item.Section, item.Name).ToInt32();
-                    var neededAmount = quota - itemAmount;
+                    if (quota == 0)
+                        continue;
+                    var itemMeta = Items[item.Name];
+                    var neededAmount = quota - GetInventoryItemsCount(itemMeta, Producers);
 
                     if (neededAmount > 0)
-                        QueueItems(itemMeta, neededAmount);
+                        QueueItems(itemMeta, neededAmount, assemblers.Where(a => a.CanUseBlueprint(itemMeta.BlueprintId)).ToList());
                 }
             }, 1.5f);
         }
 
-        int GetInventoryItemsCount(Meta item) {
+        int GetInventoryItemsCount(Meta item, List<IMyProductionBlock> assemblers) {
             var inventoryItemAmount = Inventories.Sum(inv => inv.GetItemAmount(item.TypeId).ToIntSafe());
 
             Func<MyProductionItem, int> selector = qItem => qItem.Amount.ToIntSafe();
             Func<MyProductionItem, bool> predicate = qItem => qItem.BlueprintId == item.BlueprintId;
-            var queuedItemAmount = Assemblers.Sum(a => {
+            var queuedItemAmount = assemblers.Sum(a => {
                 var qItems = new List<MyProductionItem>();
                 a.GetQueue(qItems);
                 return qItems.Where(predicate).Sum(selector);
@@ -78,26 +88,13 @@ namespace IngameScript
             return inventoryItemAmount + queuedItemAmount;
         }
 
-        void QueueItems(Meta item, int neededAmount) {
-            var assemblers = Enumerable.Concat(Assemblers, FoodProcessors).Where(a => {
-                if (!a.CanUseBlueprint(item.BlueprintId))
-                    return false;
-                
-                if (a is IMyAssembler && ((IMyAssembler)a).CooperativeMode)
-                    return false;
+        void QueueItems(Meta item, int neededAmount, List<IMyProductionBlock> assemblers) {
+            if (assemblers.Count == 0)
+                return;
 
-                return true;
-            }
-            ).ToList();
-            if (assemblers.Count == 0) return;
-
-            var amount = neededAmount / Math.Max(assemblers.Count, 1);
-            foreach (var assembler in assemblers) {
-                if (neededAmount < 0)
-                    break;
+            var amount = neededAmount > assemblers.Count ? neededAmount / assemblers.Count : neededAmount;
+            foreach (var assembler in assemblers)
                 assembler.AddQueueItem(item.BlueprintId, (MyFixedPoint)amount);
-                neededAmount -= amount;
-            }
         }
     }
 }
