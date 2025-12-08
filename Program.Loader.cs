@@ -12,7 +12,7 @@ namespace IngameScript
 {
     partial class Program : MyGridProgram
     {
-        List<IMyTerminalBlock> LoadoutContainers => Memo.Of("LoaderContainers", 1, () => {
+        List<IMyTerminalBlock> LoadoutContainers => Memo.Of("LoaderContainers", 5, () => {
             var list = new List<IMyTerminalBlock>();
             GridTerminalSystem.GetBlocksOfType(list, b => Util.IsTagged(b, loadoutTag));
             return list;
@@ -55,12 +55,12 @@ namespace IngameScript
 
                         // Find itemType in inventories
                         var currentAmount = (float)container.GetInventory().GetItemAmount(itemType);
-                        if (currentAmount >= amount)
-                            continue;
                         var neededAmount = amount - currentAmount;
+                        if (neededAmount <= 0)
+                            continue;
                         foreach (var inventory in inventories) {
                             var itm = inventory.FindItem(itemType);
-                            if (!itm.HasValue || itm.Value.Amount == 0)
+                            if (!itm.HasValue)
                                 continue;
                             var toTransfer = Math.Min(neededAmount, (float)itm.Value.Amount);
                             inventory.TransferItemTo(container.GetInventory(), itm.Value, (MyFixedPoint)toTransfer);
