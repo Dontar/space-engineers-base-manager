@@ -20,7 +20,6 @@ namespace IngameScript
                 || b.BlockDefinition.SubtypeId == "FoodProcessor";
         }));
 
-        List<IMyInventory> Inventories;
         MyIni ItemsQuota => Memo.Of("ItemsConfig", Me.CustomData, () => {
             var ini = new MyIni();
             ini.TryParse(Me.CustomData);
@@ -28,14 +27,6 @@ namespace IngameScript
         });
 
         void InitQuota() {
-
-            Inventories = Util.GetBlocks<IMyTerminalBlock>(b => b.HasInventory).SelectMany(b => {
-                var inv = new List<IMyInventory>();
-                for (var i = 0; i < b.InventoryCount; i++) {
-                    inv.Add(b.GetInventory(i));
-                }
-                return inv;
-            }).ToList();
 
             var result = Producers.SelectMany(a => {
                 var items = new List<MyItemType>();
@@ -75,7 +66,13 @@ namespace IngameScript
         }
 
         int GetInventoryItemsCount(Meta item, List<IMyProductionBlock> assemblers) {
-            var inventoryItemAmount = Inventories.Sum(inv => inv.GetItemAmount(item.TypeId).ToIntSafe());
+            var inventoryItemAmount = InventoryBlocks.SelectMany(block => {
+                var inv = new List<IMyInventory>();
+                for (int i = 0; i < block.InventoryCount; i++) {
+                    inv.Add(block.GetInventory(i));
+                }
+                return inv;
+            }).Sum(inv => inv.GetItemAmount(item.TypeId).ToIntSafe());
 
             Func<MyProductionItem, int> selector = qItem => qItem.Amount.ToIntSafe();
             Func<MyProductionItem, bool> predicate = qItem => qItem.BlueprintId == item.BlueprintId;

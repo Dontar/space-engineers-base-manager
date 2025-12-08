@@ -10,12 +10,14 @@ namespace IngameScript
         bool manageInventories = true;
         bool managePower = true;
         bool manageAirLocks = true;
+        bool manageLoadout = true;
 
         string oresTag = "Ores";
         string ingotsTag = "Ingots";
         string componentsTag = "Components";
         string toolsTag = "Tools";
         string ammoTag = "Ammo";
+        string loadoutTag = "Loadout";
 
         // end of config
         #endregion
@@ -30,6 +32,9 @@ namespace IngameScript
                 InitPower();
             if (manageAirLocks)
                 InitAirLocks();
+            if (manageLoadout)
+                InitLoader();
+
             Task.RunTask(Util.StatusMonitorTask(this));
             Task.RunTask(Util.DisplayLogo("Base Manager", Me.GetSurface(0))).Every(1.5f);
         }

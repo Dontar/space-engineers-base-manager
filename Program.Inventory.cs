@@ -8,7 +8,7 @@ using VRage.Game.ModAPI.Ingame;
 
 namespace IngameScript
 {
-    partial class Program
+    partial class Program : MyGridProgram
     {
         List<IMyTerminalBlock> InventoryBlocks => Memo.Of("InventoryBlocks", TimeSpan.FromSeconds(5), () => Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory));
         void InitInventories() {
@@ -18,7 +18,8 @@ namespace IngameScript
         IEnumerable InventoryTask() {
             var inventories = InventoryBlocks.Where(b =>
                 !(
-                    (b is IMyGasGenerator)
+                    b.Closed
+                    || (b is IMyGasGenerator)
                     || (b is IMyReactor)
                     || (b is IMyShipWelder)
                     || (b is IMyParachute)
@@ -34,14 +35,22 @@ namespace IngameScript
                 return inv;
             });
 
-            var cargoContainers = InventoryBlocks.OfType<IMyCargoContainer>();
-            var OreContainers = cargoContainers.Where(c => Util.IsTagged(c, oresTag));
-            var IngotContainers = cargoContainers.Where(c => Util.IsTagged(c, ingotsTag));
-            var ComponentContainers = cargoContainers.Where(c => Util.IsTagged(c, componentsTag));
-            var ToolsContainers = cargoContainers.Where(c => Util.IsTagged(c, toolsTag));
-            var AmmoContainers = cargoContainers.Where(c => Util.IsTagged(c, ammoTag));
+            var cargoContainers = InventoryBlocks.OfType<IMyCargoContainer>().SelectMany(block => {
+                var inv = new List<IMyInventory>();
+                for (int i = 0; i < block.InventoryCount; i++) {
+                    inv.Add(block.GetInventory(i));
+                }
+                return inv;
+            }).ToList();
+            var OreContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, oresTag));
+            var IngotContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, ingotsTag));
+            var ComponentContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, componentsTag));
+            var ToolsContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, toolsTag));
+            var AmmoContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, ammoTag));
 
             foreach (var inventory in inventories) {
+                if (inventory.Owner.Closed)
+                    continue;
                 if (inventory.ItemCount == 0 || (IsInputInventory(inventory) && !IsFull(inventory)))
                     continue;
 
@@ -49,7 +58,7 @@ namespace IngameScript
                 inventory.GetItems(items);
 
                 foreach (var item in items) {
-                    IEnumerable<IMyCargoContainer> materialContainers = null;
+                    IEnumerable<IMyInventory> materialContainers = null;
                     switch (item.Type.TypeId) {
                         case "MyObjectBuilder_Ore":
                             materialContainers = OreContainers;
@@ -69,9 +78,9 @@ namespace IngameScript
                         default:
                             break;
                     }
-                    if (!materialContainers?.Any(c => c == inventory.Owner) ?? false) {
-                        var freeContainer = materialContainers.FirstOrDefault(c => c.GetInventory().CanItemsBeAdded(item.Amount, item.Type));
-                        freeContainer?.GetInventory().TransferItemFrom(inventory, item);
+                    if (!materialContainers?.Contains(inventory) ?? false) {
+                        var freeContainer = materialContainers.FirstOrDefault(c => c.CanItemsBeAdded(item.Amount, item.Type));
+                        freeContainer?.TransferItemFrom(inventory, item);
                     }
                 }
                 yield return null;
