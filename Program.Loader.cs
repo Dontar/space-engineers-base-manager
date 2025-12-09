@@ -28,7 +28,7 @@ namespace IngameScript
             var inventories = Inventories;
 
             foreach (var container in LoadoutContainers.Where(c => !c.Closed)) {
-                if (LoadoutConfig.TryParse(container.CustomData)) {
+                if (LoadoutConfig.TryParse(container.CustomData) && !string.IsNullOrEmpty(container.CustomData)) {
                     var items = new List<MyIniKey>();
                     LoadoutConfig.GetKeys(items);
 
