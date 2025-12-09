@@ -11,29 +11,31 @@ namespace IngameScript
     partial class Program : MyGridProgram
     {
         List<IMyTerminalBlock> InventoryBlocks => Memo.Of("InventoryBlocks", TimeSpan.FromSeconds(5), () => Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory));
+        IEnumerable<IMyInventory> Inventories => InventoryBlocks.Where(b =>
+            !(
+                b.Closed
+                || (b is IMyGasGenerator)
+                || (b is IMyReactor)
+                || (b is IMyShipWelder)
+                || (b is IMyParachute)
+                || b.BlockDefinition.TypeIdString.Contains("Turret")
+                || b.BlockDefinition.TypeIdString.Contains("Gatling")
+                || b.BlockDefinition.TypeIdString.Contains("Launcher")
+            )
+        ).SelectMany(block => {
+            var inv = new List<IMyInventory>();
+            for (int i = 0; i < block.InventoryCount; i++) {
+                inv.Add(block.GetInventory(i));
+            }
+            return inv;
+        });
+
         void InitInventories() {
             Task.RunTask(InventoryTask()).Every(2);
         }
 
         IEnumerable InventoryTask() {
-            var inventories = InventoryBlocks.Where(b =>
-                !(
-                    b.Closed
-                    || (b is IMyGasGenerator)
-                    || (b is IMyReactor)
-                    || (b is IMyShipWelder)
-                    || (b is IMyParachute)
-                    || b.BlockDefinition.TypeIdString.Contains("Turret")
-                    || b.BlockDefinition.TypeIdString.Contains("Gatling")
-                    || b.BlockDefinition.TypeIdString.Contains("Launcher")
-                )
-            ).SelectMany(block => {
-                var inv = new List<IMyInventory>();
-                for (int i = 0; i < block.InventoryCount; i++) {
-                    inv.Add(block.GetInventory(i));
-                }
-                return inv;
-            });
+            var inventories = Inventories;
 
             var cargoContainers = InventoryBlocks.OfType<IMyCargoContainer>().SelectMany(block => {
                 var inv = new List<IMyInventory>();

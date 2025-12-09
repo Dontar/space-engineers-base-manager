@@ -25,24 +25,7 @@ namespace IngameScript
         }
 
         IEnumerable LoadoutTask() {
-            var inventories = InventoryBlocks.Where(b =>
-                !(
-                    b.Closed
-                    || (b is IMyGasGenerator)
-                    || (b is IMyReactor)
-                    || (b is IMyShipWelder)
-                    || (b is IMyParachute)
-                    || b.BlockDefinition.TypeIdString.Contains("Turret")
-                    || b.BlockDefinition.TypeIdString.Contains("Gatling")
-                    || b.BlockDefinition.TypeIdString.Contains("Launcher")
-                )
-            ).SelectMany(block => {
-                var inv = new List<IMyInventory>();
-                for (int i = 0; i < block.InventoryCount; i++) {
-                    inv.Add(block.GetInventory(i));
-                }
-                return inv;
-            });
+            var inventories = Inventories;
 
             foreach (var container in LoadoutContainers.Where(c => !c.Closed)) {
                 if (LoadoutConfig.TryParse(container.CustomData)) {
