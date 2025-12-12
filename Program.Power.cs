@@ -22,17 +22,16 @@ namespace IngameScript
 
             Task.SetInterval(() => {
                 var storedPower = Batteries.Sum(b => b.CurrentStoredPower);
-                var powerPercent = storedPower / Math.Min(1, maxStoredPower);
+                var powerPercent = Util.NormalizeValue(storedPower, maxStoredPower, 100);
 
-                if (powerPercent < 0.1) {
+                if (powerPercent < 10) {
                     Reactors.ForEach(r => r.Enabled = true);
                     Engines.ForEach(e => e.Enabled = true);
                 }
-                if (powerPercent > 0.9) {
+                if (powerPercent > 95) {
                     Reactors.ForEach(r => r.Enabled = false);
                     Engines.ForEach(e => e.Enabled = false);
                 }
-
             }, 2);
         }
     }

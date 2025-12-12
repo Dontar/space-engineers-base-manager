@@ -35,9 +35,9 @@ namespace IngameScript
             }).Join(Items, o => o, i => i.Value.TypeId, (_, r) => r);
 
             foreach (var item in result) {
-                var subtypeId = item.Value.TypeId.SubtypeId;
-                if (!ItemsQuota.ContainsKey(subtypeId, item.Key))
-                    ItemsQuota.Set(subtypeId, item.Key, "0");
+                var typeId = item.Value.TypeId.TypeId.Substring(16);
+                if (!ItemsQuota.ContainsKey(typeId, item.Key))
+                    ItemsQuota.Set(typeId, item.Key, "0");
             }
             Me.CustomData = ItemsQuota.ToString();
 

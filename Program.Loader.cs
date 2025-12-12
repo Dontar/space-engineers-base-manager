@@ -26,10 +26,10 @@ namespace IngameScript
 
         IEnumerable LoadoutTask() {
             var inventories = Inventories;
+            var items = new List<MyIniKey>();
 
             foreach (var container in LoadoutContainers.Where(c => !c.Closed)) {
                 if (LoadoutConfig.TryParse(container.CustomData) && !string.IsNullOrEmpty(container.CustomData)) {
-                    var items = new List<MyIniKey>();
                     LoadoutConfig.GetKeys(items);
 
                     foreach (var item in items) {
