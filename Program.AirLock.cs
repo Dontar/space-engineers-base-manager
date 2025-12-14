@@ -1,5 +1,6 @@
 // <mdk sortorder="1000" />
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.ModAPI.Ingame;
@@ -9,15 +10,12 @@ namespace IngameScript
 {
     public partial class Program : MyGridProgram
     {
-        List<IMyDoor> Doors;
-        List<IMyDoor[]> AirLocks;
-        void InitAirLocks() {
-            Doors = Util.GetBlocks<IMyDoor>(b => Util.IsNotIgnored(b));
-            AirLocks = new List<IMyDoor[]>();
+        List<IMyDoor> Doors => Memo.Of("Doors", TimeSpan.FromSeconds(30), () => Util.GetBlocks<IMyDoor>(b => Util.IsNotIgnored(b)));
+        List<IMyDoor[]> AirLocks => Memo.Of("AirLocks", Doors, () => {
+            var list = new List<IMyDoor[]>();
             var usedDoors = new HashSet<IMyDoor>();
 
             foreach (var door in Doors) {
-                door.CloseDoor();
                 if (usedDoors.Contains(door))
                     continue;
 
@@ -27,16 +25,28 @@ namespace IngameScript
                     if (otherDoor == door || usedDoors.Contains(otherDoor))
                         continue;
 
+                    if (otherDoor.CustomData.Contains(airLockTag) && door.CustomData == otherDoor.CustomData) {
+                        list.Add(new[] { door, otherDoor });
+                        usedDoors.Add(door);
+                        usedDoors.Add(otherDoor);
+                        break;
+                    }
+
                     var otherDoorPos = otherDoor.Position;
-                    double distance = Vector3I.DistanceManhattan(doorPos, otherDoorPos);
+                    var distance = Vector3I.DistanceManhattan(doorPos, otherDoorPos);
                     if (distance < 2) {
-                        AirLocks.Add(new[] { door, otherDoor });
+                        list.Add(new[] { door, otherDoor });
                         usedDoors.Add(door);
                         usedDoors.Add(otherDoor);
                         break;
                     }
                 }
             }
+            return list;
+        });
+
+        void InitAirLocks() {
+            Doors.ForEach(d => d.CloseDoor());
 
             Task.SetInterval(() => {
                 var openingDoors = Doors.Where(d => d.Status == DoorStatus.Opening);

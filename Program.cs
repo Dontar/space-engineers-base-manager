@@ -5,12 +5,14 @@ namespace IngameScript
     public partial class Program : MyGridProgram
     {
         #region mdk preserve
-        // Configuration
+
         bool manageAssemblers = true;
         bool manageInventories = true;
         bool managePower = true;
         bool manageAirLocks = true;
         bool manageLoadout = true;
+
+        string airLockTag = "AirLock_";
 
         string oresTag = "Ores";
         string ingotsTag = "Ingots";
@@ -19,7 +21,11 @@ namespace IngameScript
         string ammoTag = "Ammo";
         string loadoutTag = "Loadout";
 
-        // end of config
+
+
+
+
+
         #endregion
 
         public Program() {
