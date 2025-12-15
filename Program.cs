@@ -6,6 +6,8 @@ namespace IngameScript
     {
         #region mdk preserve
 
+        // Version: 0.1.1
+
         bool manageAssemblers = true;
         bool manageInventories = true;
         bool managePower = true;
