@@ -6,13 +6,15 @@ namespace IngameScript
     {
         #region mdk preserve
 
-        // Version: 0.1.1
+        // Version: 0.1.3
 
         bool manageAssemblers = true;
         bool manageInventories = true;
         bool managePower = true;
         bool manageAirLocks = true;
         bool manageLoadout = true;
+
+        
 
         string airLockTag = "AirLock_";
 
@@ -22,12 +24,7 @@ namespace IngameScript
         string toolsTag = "Tools";
         string ammoTag = "Ammo";
         string loadoutTag = "Loadout";
-
-
-
-
-
-
+        
         #endregion
 
         public Program() {

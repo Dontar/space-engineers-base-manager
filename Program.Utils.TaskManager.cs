@@ -32,7 +32,7 @@ namespace IngameScript
                 Task.SetInterval(() => {
                     cb(Resolve);
                     if (isDone || onDone == null)
-                        Task.StopTask(Task.CurrentTask);
+                        Task.StopTask();
                 }, 0).OnDone(() => {
                     onDone?.Invoke(Result);
                 });
@@ -41,7 +41,7 @@ namespace IngameScript
             public static Promise All(Promise[] list) {
                 return new Promise(res => {
                     for (int i = 0; i < list.Length; i++)
-                        list[i].Then(_ => {});
+                        list[i].Then(_ => { });
                     var results = new object[list.Length];
                     Task.SetInterval(() => {
                         var completed = 0;
@@ -53,12 +53,15 @@ namespace IngameScript
                         }
                         if (completed == list.Length) {
                             res(results);
-                            Task.StopTask(Task.CurrentTask);
+                            Task.StopTask();
                         }
                     }, 0);
                 });
             }
+
+            public static Promise Resolve(Action<Action<object>> cb) => new Promise(cb);
         }
+
         interface ITask
         {
             ITask Every(float seconds);
@@ -149,9 +152,10 @@ namespace IngameScript
             public static ITask SetTimeout(Action cb, float delaySeconds) =>
                 RunTask(InternalTask(cb, true)).Once().Every(delaySeconds);
 
-            public static void StopTask(ITask task) {
-                tasks.Remove((Task)task);
-                ((Task)task)?.onDone?.Invoke();
+            public static void StopTask(ITask task = null) {
+                var t = task ?? CurrentTask;
+                tasks.Remove((Task)t);
+                ((Task)t).onDone?.Invoke();
             }
 
             public static bool IsRunning(ITask task) {

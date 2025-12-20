@@ -25,7 +25,15 @@ namespace IngameScript
                     if (otherDoor == door || usedDoors.Contains(otherDoor))
                         continue;
 
-                    if (otherDoor.CustomData.Contains(airLockTag) && door.CustomData == otherDoor.CustomData) {
+                    if (otherDoor.CustomData.Contains(airLockTag)) {
+                        var regex = new System.Text.RegularExpressions.Regex($@"^{airLockTag}(\d+)$", System.Text.RegularExpressions.RegexOptions.Multiline);
+                        var match1 = regex.Match(door.CustomData);
+                        var match2 = regex.Match(otherDoor.CustomData);
+                        if (!match1.Success || !match2.Success)
+                            continue;
+                        if (match1.Groups[1].Value != match2.Groups[1].Value)
+                            continue;
+
                         list.Add(new[] { door, otherDoor });
                         usedDoors.Add(door);
                         usedDoors.Add(otherDoor);
