@@ -1,4 +1,5 @@
 ﻿using Sandbox.ModAPI.Ingame;
+using VRage.Game.ModAPI.Ingame.Utilities;
 
 namespace IngameScript
 {
@@ -40,10 +41,14 @@ namespace IngameScript
             if (manageLoadout)
                 InitLoader();
 
+            InitComms();
+            InitMenu();
+
             Task.RunTask(Util.StatusMonitorTask(this));
             Task.RunTask(Util.DisplayLogo("Base Manager", Me.GetSurface(0))).Every(1.5f);
         }
 
+        MyCommandLine Cmd = new MyCommandLine();
         public void Main(string argument, UpdateType updateSource) {
             if (!updateSource.HasFlag(UpdateType.Update10))
                 return;
