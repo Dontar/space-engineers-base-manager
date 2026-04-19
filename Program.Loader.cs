@@ -12,11 +12,7 @@ namespace IngameScript
 {
     partial class Program : MyGridProgram
     {
-        List<IMyTerminalBlock> LoadoutContainers => Memo.Of("LoaderContainers", 5, () => {
-            var list = new List<IMyTerminalBlock>();
-            GridTerminalSystem.GetBlocksOfType(list, b => Util.IsTagged(b, loadoutTag));
-            return list;
-        });
+        List<IMyTerminalBlock> LoadoutContainers => Memo.Of("LoaderContainers", 5, () => Util.GetBlocks<IMyTerminalBlock>(loadoutTag));
 
         MyIni LoadoutConfig = new MyIni();
 

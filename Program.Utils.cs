@@ -27,9 +27,8 @@ namespace IngameScript
                 return blocks;
             }
 
-            public static List<T> GetBlocks<T>(string blockTag) where T : class, IMyTerminalBlock {
-                return GetBlocks<T>(b => IsTagged(b, blockTag));
-            }
+            public static List<T> GetBlocks<T>(string blockTag) where T : class, IMyTerminalBlock =>
+                GetBlocks<T>(b => IsTagged(b, blockTag));
 
             public static List<T> GetGroup<T>(string name, Func<T, bool> collect = null) where T : class, IMyTerminalBlock {
                 var groupBlocks = new List<T>();
