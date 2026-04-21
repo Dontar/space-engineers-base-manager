@@ -1,4 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using Sandbox.Game.VoiceChat;
 using Sandbox.ModAPI.Ingame;
 
 namespace IngameScript
@@ -19,6 +23,7 @@ namespace IngameScript
                         shipList[msg.Data.ToString()] = senderId;
                     }
                 }
+                Menu.HandleRemoteMessages();
             }, 1);
         }
 
@@ -28,22 +33,25 @@ namespace IngameScript
                 ShowShipMenu();
             }
 
+            void ConnectToShip(long entityId) {
+                var screen = program.Screens.FirstOrDefault();
+                if (screen == null) return;
+                var screenLines = Util.ScreenLines(screen);
+                var screenColumns = Util.ScreenColumns(screen, '=');
+                ConnectToRemoteMenu(entityId, screenLines, screenColumns);
+            }
+
             void ShowShipMenu() {
                 var menu = CreateMenu("Ship List");
-                foreach (var ship in program.shipList) {
-                    var localId = ship.Value;
-                    menu.Add(new Item(ship.Key, () => ConnectToRemoteMenu(localId)));
-                }
+                menu.AddArray(program.shipList.Select(kv => new Item(kv.Key, () => ConnectToShip(kv.Value))).ToArray());
             }
         }
 
+        List<IMyTextSurface> Screens => Memo.Of("Screens", TimeSpan.FromSeconds(3), () => Util.GetScreens(remoteShipMenuTag));
         void InitMenu() {
             Menu = new ShipMenu(this);
-
-            var screens = Util.GetScreens("{Base}");
-
             Task.SetInterval(() => {
-                screens.ForEach(s => Menu.Render(s));
+                Screens.ForEach(s => Menu.Render(s));
             }, 1);
 
         }

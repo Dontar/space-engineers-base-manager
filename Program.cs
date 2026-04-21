@@ -14,10 +14,10 @@ namespace IngameScript
         bool managePower = true;
         bool manageAirLocks = true;
         bool manageLoadout = true;
-
-        
+        bool shipController = true;
 
         string airLockTag = "AirLock_";
+        string remoteShipMenuTag = "RemoteMenu";
 
         string oresTag = "Ores";
         string ingotsTag = "Ingots";
@@ -40,9 +40,10 @@ namespace IngameScript
                 InitAirLocks();
             if (manageLoadout)
                 InitLoader();
-
-            InitComms();
-            InitMenu();
+            if (shipController) {
+                InitComms();
+                InitMenu();
+            }
 
             Task.RunTask(Util.StatusMonitorTask(this));
             Task.RunTask(Util.DisplayLogo("Base Manager", Me.GetSurface(0))).Every(1.5f);

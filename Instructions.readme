@@ -1,5 +1,193 @@
 ﻿R e a d m e
 -----------
 
-In this file you can include any instructions or other comments you want to have injected onto the 
-top of your final script. You can safely delete this file if you do not want any such comments.
+# Space Engineers Base Manager - User Manual
+
+## Overview
+
+The Base Manager is an in-game script for Space Engineers that automates base/capital ship management tasks including inventory organization, power management, item quotas, airlock coordination, and remote mining ship/drones menu access.
+
+---
+
+## Features
+
+### 1. **Inventory Management**
+Automatically transfers items from production inventories to appropriate storage containers based on item type:
+- **Ores** → Ores containers
+- **Ingots** → Ingots containers  
+- **Components** → Components containers
+- **Tools** → Tools containers
+- **Ammo** → Ammo containers
+
+### 2. **Assembler Quota System**
+Automatically monitors and queues items for production based on configured quotas:
+- Tracks inventory levels across all assemblers
+- Automatically queues items when below quota
+- Supports multiple assemblers
+
+### 3. **Power Management**
+Automatically manages power generation based on battery storage:
+- **Low power (< 10%)**: Enables reactors and engines
+- **High power (> 95%)**: Disables reactors and engines
+
+### 4. **Airlock Management**
+Automatically coordinates airlock doors:
+- Pairs doors with matching tags (e.g., `AirLock_1`)
+- Automatically closes doors when opening
+- Prevents airlock breaches
+
+### 5. **Loadout Manager**
+Automatically fills loadout containers with items:
+- Reads item quantities from container INI configuration
+- Transfers items from general inventories
+
+### 6. **Remote Ship Menu**
+Provides a menu to connect to remote ship menus (intended to be used with the `space-engineers-dpam` script):
+- Listens for `SHIP_PING` broadcast messages
+- Displays connected ships in a menu
+- Manage mining shuttle tasks
+
+---
+
+## Configuration Parameters
+
+### Core Settings
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `manageAssemblers` | bool | `true` | Enable item quota system |
+| `manageInventories` | bool | `true` | Enable automatic inventory organization |
+| `managePower` | bool | `true` | Enable automatic power management |
+| `manageAirLocks` | bool | `true` | Enable automatic airlock coordination |
+| `manageLoadout` | bool | `true` | Enable automatic loadout filling |
+| `shipController` | bool | `true` | Enable remote ship menu |
+| `airLockTag` | string | `"AirLock_"` | Tag prefix for airlock door pairs |
+| `oresTag` | string | `"Ores"` | Tag for ore storage containers |
+| `ingotsTag` | string | `"Ingots"` | Tag for ingot storage containers |
+| `componentsTag` | string | `"Components"` | Tag for component storage containers |
+| `toolsTag` | string | `"Tools"` | Tag for tool storage containers |
+| `ammoTag` | string | `"Ammo"` | Tag for ammo storage containers |
+| `loadoutTag` | string | `"Loadout"` | Tag for loadout containers |
+
+---
+
+## Configuration Examples
+
+### Item Quota Configuration
+
+Add to `CustomData` block property on your assembler:
+
+```ini
+[Component]
+Computer=15
+Motor=100
+[PhysicalGunObject]
+AdvancedHandHeldLauncher=1
+AngleGrinder4=1
+AutomaticRifle=1
+EliteAutomaticRifle=1
+ElitePistol=1
+FlareGun=1
+```
+
+### Loadout Container Configuration
+
+Add to `CustomData` block property on your loadout container (for example on a ship):
+
+```ini
+[Loadout]
+AdvancedHandHeldLauncher=1
+FlareGun=5
+```
+
+---
+
+## Airlock Door Tagging
+
+To pair airlock doors, add the tag to each door's `CustomData`:
+
+```
+# Door_1 CustomData
+AirLock_1
+
+# Door_2 CustomData
+AirLock_1
+```
+
+The script will automatically pair doors with matching tag numbers.
+
+**Note:** If no matching tag is found, doors within 2 blocks Manhattan distance will be paired as a fallback.
+
+---
+
+## Container Tagging
+
+Tag your storage containers in their `CustomData` block property:
+
+| Container Type | CustomData |
+|----------------|------------|
+| Ore storage | `Ores` |
+| Ingot storage | `Ingots` |
+| Component storage | `Components` |
+| Tool storage | `Tools` |
+| Ammo storage | `Ammo` |
+| Loadout container | `Loadout` |
+
+
+> You can put more than one tag delimited with spaces or newline.
+---
+
+## Usage Tips
+
+### Power Management
+- The script only manages **reactors** and **engines** (not batteries, solar panels, wind turbines)
+- Batteries must be set to **Auto** charge mode
+
+### Airlock Setup
+1. Place two doors close together (within 2 blocks Manhattan distance)
+2. Add matching tag to both doors
+3. Doors will automatically coordinate opening/closing
+
+### Inventory Organization
+- The script only transfers items from **output inventories** of production blocks
+- The script will only transfer items from **input inventories** if they are full. It tries to unclutter them.
+- It only transfers to containers that can accept the item type
+
+---
+
+## Notes
+
+- The script runs at **Update10** frequency (10 updates per second)
+- Power management checks every **2 seconds**
+- Inventory management runs every **2 seconds**
+- Quota system checks every **1.5 seconds**
+- Loadout manager runs every **1 second**
+
+---
+
+## Troubleshooting
+
+### Tags Not Being Read
+- Ensure tags are in `CustomData` block property (not `CustomName`)
+- Tags must be plain text without special characters
+- Verify the block has the `CustomData` property set
+
+### Airlocks Not Pairing
+- Check that both doors have the same tag number
+- Verify doors are within 2 blocks Manhattan distance
+- If tags match but still not pairing, check for other doors with the same tag in the area
+
+### Inventory Transfers Not Working
+- Confirm items are in output inventories (not input inventories)
+- Verify containers have the correct tag
+- Check that containers can accept the item type (e.g., ingots in ingot containers)
+- The script only transfers to containers that can accept the item type
+
+### Power Management Issues
+- Ensure reactors and engines are present
+- Check that batteries are set to **Auto** charge mode
+- Power management only affects reactors and engines, not batteries or solar panels
+
+---
+
+*Version: 0.1.3*
