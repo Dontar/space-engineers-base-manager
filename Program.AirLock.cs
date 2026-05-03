@@ -69,10 +69,12 @@ namespace IngameScript
                     Task.SetTimeout(() => {
                         door.CloseDoor();
                         if (otherDoor != null && otherDoor.Status == DoorStatus.Closed) {
-                            new Promise(res => {
-                                if (door.Status == DoorStatus.Closed)
-                                    res(true);
-                            }).Then(_ => otherDoor.Enabled = true);
+                            Task.SetInterval(() => {
+                                if (door.Status == DoorStatus.Closed) {
+                                    Task.StopTask();
+                                    otherDoor.Enabled = true;
+                                }
+                            }, 0);
                         }
                     }, 2);
                 }
