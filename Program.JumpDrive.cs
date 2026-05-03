@@ -18,7 +18,7 @@ namespace IngameScript
                 var scanResult = camera.Raycast(camera.AvailableScanRange);
                 if (!scanResult.IsEmpty()) {
                     var distance = Vector3D.Distance(camera.GetPosition(), scanResult.Position);
-                    JumpDrives.ForEach(jd => jd.JumpDistanceMeters = (float)distance);
+                    JumpDrives.ForEach(jd => jd.JumpDistanceMeters = Math.Min(jd.MaxJumpDistanceMeters, (float)distance));
                     var gps = new MyWaypointInfo(scanResult.Name, scanResult.Position);
                     camera.CustomData += gps.ToString() + Environment.NewLine;
                 }
