@@ -34,7 +34,7 @@ namespace IngameScript
         string toolsTag = "Tools";
         string ammoTag = "Ammo";
         string loadoutTag = "Loadout";
-        
+
         #endregion
 
         public Program() {
@@ -60,11 +60,26 @@ namespace IngameScript
 
         MyCommandLine Cmd = new MyCommandLine();
         public void Main(string argument, UpdateType updateSource) {
-            if (!updateSource.HasFlag(UpdateType.Update10))
+            if (!updateSource.HasFlag(UpdateType.Update10)) {
+                if (Cmd.TryParse(argument))
+                    ExecuteCommand();
                 return;
+            }
 
             Memo.Tick(Runtime.TimeSinceLastRun);
             Task.Tick(Runtime.TimeSinceLastRun);
+        }
+
+        public void ExecuteCommand() {
+            switch (Cmd.Argument(0).ToLower()) {
+                case "getgps":
+                    GetGPSFromCameras();
+                    break;
+                default:
+                    if (!Menu.ProcessMenuCommands(Cmd))
+                        Echo($"Unknown command: {Cmd.Argument(0)}");
+                    break;
+            }
         }
     }
 }
