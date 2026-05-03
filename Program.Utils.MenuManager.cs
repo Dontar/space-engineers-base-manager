@@ -93,7 +93,9 @@ namespace IngameScript
                 Item Item => this[_selectedOption];
                 Item AItem => this[_activeOption];
 
-                public Action onDispose;
+                public Action OnDispose {
+                    get; set;
+                }
 
                 public Menu(string title, Func<string> footer = null) : base() {
                     _title = title;
@@ -170,7 +172,7 @@ namespace IngameScript
                 }
 
                 public void Dispose() {
-                    onDispose?.Invoke();
+                    OnDispose?.Invoke();
                 }
             }
 
