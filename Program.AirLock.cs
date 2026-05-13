@@ -55,28 +55,39 @@ namespace IngameScript
 
         void InitAirLocks() {
             Doors.ForEach(d => d.CloseDoor());
+            var trackedDoors = new HashSet<IMyDoor>();
 
             Task.SetInterval(() => {
-                var openingDoors = Doors.Where(d => d.Status == DoorStatus.Opening);
+                foreach (var door in Doors.Where(d => d.Status == DoorStatus.Closed))
+                    trackedDoors.Remove(door);
+
+                var openingDoors = Doors.Where(d => d.Status == DoorStatus.Opening && !trackedDoors.Contains(d));
 
                 foreach (var door in openingDoors) {
+                    trackedDoors.Add(door);
                     IMyDoor otherDoor = null;
                     var airLock = AirLocks.Find(l => l.Contains(door));
                     if (airLock != null) {
                         otherDoor = door == airLock[0] ? airLock[1] : airLock[0];
                         otherDoor.Enabled = false;
                     }
-                    Task.SetTimeout(() => {
-                        door.CloseDoor();
-                        if (otherDoor != null && otherDoor.Status == DoorStatus.Closed) {
-                            Task.SetInterval(() => {
-                                if (door.Status == DoorStatus.Closed) {
-                                    Task.StopTask();
-                                    otherDoor.Enabled = true;
-                                }
-                            }, 0);
-                        }
-                    }, 2);
+                    Task.SetInterval(() => {
+                        if (door.Status != DoorStatus.Open)
+                            return;
+
+                        Task.StopTask();
+                        Task.SetTimeout(() => {
+                            door.CloseDoor();
+                            if (otherDoor != null && otherDoor.Status == DoorStatus.Closed) {
+                                Task.SetInterval(() => {
+                                    if (door.Status == DoorStatus.Closed) {
+                                        Task.StopTask();
+                                        otherDoor.Enabled = true;
+                                    }
+                                }, 0);
+                            }
+                        }, 2);
+                    }, 0);
                 }
             }, 0);
             Util.Echo(AirLocks.Count.ToString() + " airlocks initialized.");
