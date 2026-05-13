@@ -45,6 +45,7 @@ namespace IngameScript
                 return inv;
             }).ToList();
             var OreContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, oresTag));
+            var IceContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, iceTag));
             var IngotContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, ingotsTag));
             var ComponentContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, componentsTag));
             var ToolsContainers = cargoContainers.Where(c => Util.IsTagged(c.Owner as IMyTerminalBlock, toolsTag));
@@ -63,7 +64,7 @@ namespace IngameScript
                     IEnumerable<IMyInventory> materialContainers = null;
                     switch (item.Type.TypeId) {
                         case "MyObjectBuilder_Ore":
-                            materialContainers = OreContainers;
+                            materialContainers = item.Type.SubtypeId.Contains("Ice") ? IceContainers : OreContainers;
                             break;
                         case "MyObjectBuilder_Ingot":
                             materialContainers = IngotContainers;
