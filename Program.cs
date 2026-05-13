@@ -30,6 +30,7 @@ namespace IngameScript
         // Inventory tags. Blocks tagged with these will be considered part of that inventory type for loadout management and inventory transfers.
         string oresTag = "Ores";
         string iceTag = "Ice";
+        string stoneTag = "Stone";
         string ingotsTag = "Ingots";
         string componentsTag = "Components";
         string toolsTag = "Tools";
