@@ -1,67 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace IngameScript
 {
     partial class Program
     {
-        class Promise
-        {
-            public bool IsDone => isDone;
-            public object Result;
-            public T As<T>() => (T)Result;
-
-            Action<object> onDone;
-            bool isDone;
-
-            public Promise Then(Action<object> cb) {
-                onDone += cb;
-                return this;
-            }
-            public Promise Then<T>(Action<T> cb) {
-                onDone += obj => cb((T)obj);
-                return this;
-            }
-            void Resolve(object result) {
-                isDone = true;
-                Result = result;
-            }
-            public Promise(Action<Action<object>> cb) {
-                Task.SetInterval(() => {
-                    cb(Resolve);
-                    if (isDone || onDone == null)
-                        Task.StopTask();
-                }, 0).OnDone(() => {
-                    onDone?.Invoke(Result);
-                });
-            }
-
-            public static Promise All(Promise[] list) {
-                return new Promise(res => {
-                    for (int i = 0; i < list.Length; i++)
-                        list[i].Then(_ => { });
-                    var results = new object[list.Length];
-                    Task.SetInterval(() => {
-                        var completed = 0;
-                        for (int i = 0; i < list.Length; i++) {
-                            if (list[i].IsDone) {
-                                results[i] = list[i].Result;
-                                completed++;
-                            }
-                        }
-                        if (completed == list.Length) {
-                            res(results);
-                            Task.StopTask();
-                        }
-                    }, 0);
-                });
-            }
-
-            public static Promise Resolve(Action<Action<object>> cb) => new Promise(cb);
-        }
-
         interface ITask
         {
             ITask Every(float seconds);
@@ -72,8 +16,8 @@ namespace IngameScript
             ITask Once();
             void Restart();
             T Result<T>();
-            ITask OnDone<T>(Action<T> callback);
-            ITask OnDone(Action callback);
+            ITask Then<T>(Action<T> callback);
+            ITask Then(Action callback);
         }
         class Task : ITask
         {
@@ -112,11 +56,11 @@ namespace IngameScript
                     return default(T);
                 return (T)TaskResult;
             }
-            ITask ITask.OnDone(Action callback) {
+            ITask ITask.Then(Action callback) {
                 onDone += callback;
                 return this;
             }
-            ITask ITask.OnDone<T>(Action<T> callback) {
+            ITask ITask.Then<T>(Action<T> callback) {
                 onDone += () => callback(((ITask)this).Result<T>());
                 return this;
             }
